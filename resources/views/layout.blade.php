@@ -24,12 +24,12 @@
         <nav class="my-2 my-md-0 mr-md-3">
             <a class="p-2 text-light" href="/">Главная</a>
             <a class="p-2 text-light" href="/about">Про нас</a>
-            <a class="p-2 text-light" href="/users/sign_in">Войти</a>
+            @yield('link')
         </nav>
-        <a class="btn btn-danger" href="/users/add">Прикрепиться</a>
+        @yield('button')
     </div>
     <!-- Основной "контент страницы" -->
-    <div class="container">
+    <div class="container mb-2">
         @yield('content')
     </div>
 </body>

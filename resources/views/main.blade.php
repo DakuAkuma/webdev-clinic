@@ -2,13 +2,44 @@
 @extends('layout')
 
 <!-- Название страницы, её title -->
-@section('title')
-@endsection
+@section('title')Главная страница@endsection
+
+@if(session('userInfo'))
+
+@section('link')<a class="p-2 text-light" href="/users/profile/{{session('userInfo')->id}}">Личный кабинет</a>@endsection
+
+@if(session('userInfo')->role == "patient")
+
+@section('button')<a class="btn btn-danger" href="/visits/add">Записаться на прием</a>@endsection
+
+@elseif(session('userInfo')->role == "admin")
+
+@section('button')<a class="btn btn-danger" href="/admin">Админ. панель</a>@endsection
+
+@elseif(session('userInfo')->role == "medic")
+
+@section('button')<a class="btn btn-danger" href="/records/add">Создать запись</a>@endsection
+
+@elseif(session('userInfo')->role == "employer")
+
+@section('button')@endsection
+
+@endif
+
+@else
+
+@section('link')<a class="p-2 text-light" href="/users/sign_in">Войти</a>@endsection
+
+@section('button')<a class="btn btn-danger" href="/users/sign_up">Прикрепиться</a>@endsection
+
+@endif
 
 @section('content')
     <!-- Контент страницы -->
-    <h1 class="text-center">Добро пожаловать на наш сайт</h1>
+    <h1 class="text-center">Добро пожаловать на наш сайт.</h1>
+    <div class="conatainer">
+    </div>
     <p>
-        Lorem ipsum, dolor sit amet consectetur adipisicing elit. Magni officiis tenetur nisi quam autem obcaecati, similique, ab consequuntur eligendi molestias cupiditate rem maiores amet nesciunt voluptas sed dolores. Eligendi, porro!
+        Число пациентов в настоящий момент: {{ $amount }}. 
     </p>
 @endsection
