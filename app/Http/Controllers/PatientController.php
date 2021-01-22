@@ -44,14 +44,89 @@ class PatientController extends Controller
         return redirect('/users/sign_in')->with('status', 'successful create');
     }
 
-    public function visits() {
+    public function visits(Request $request) {
+        $doctors = DB::table('clinic-doctors')->select('id', 'surname', 'name', 'patronymic', 'spec', 'cabinet')->get();
+        // Проверяем, произошел ли выбор специальности
+        if($request->has('spec')) {
+            $pickable = DB::table('clinic-doctors')->select('id', 'surname', 'name', 'patronymic', 'spec', 'cabinet')->where('spec', $request->input('spec'))->get();
+        } else {
+            $pickable = $doctors;
+        }
         // Получаем все записи от данного пользователя
         $hotVisits = DB::table('clinic-visits')->where([ ['id_patient', session('user')->id], ['date', '=', date('Y-m-d')] ])->orderBy('date')->get();
         $actualVisits = DB::table('clinic-visits')->where([ ['id_patient', session('user')->id], ['date', '>', date('Y-m-d')] ])->orderBy('date')->get();
         $archiveVisits = DB::table('clinic-visits')->where([ ['id_patient', session('user')->id], ['date', '<', date('Y-m-d')] ])->orderBy('date')->get();
         //echo var_dump($actualVisits[0]->id_medic);
-        $doctors = DB::table('clinic-doctors')->select('id', 'surname', 'name', 'patronymic', 'spec', 'cabinet')->get();
         //echo var_dump($doctors->where('id', 2)->all()->spec);
-        return view('visits', ['hot' => $hotVisits, 'actual' => $actualVisits, 'archive' => $archiveVisits, 'doctors' => $doctors]);
+        $specs = DB::table('clinic-doctors')->select('spec')->groupBy('spec')->orderBy('spec')->get()->all();
+        //echo var_dump($specs);
+        return view('visits', ['hot' => $hotVisits, 'actual' => $actualVisits, 'archive' => $archiveVisits, 'doctors' => $doctors, 'pickable' => $pickable, 'specials' => $specs]);
+    }
+
+    public function visit_validation(Request $request, $patient_id, $medic_id) {
+        // for debug
+        //dd($request);
+        // Валидация данных
+        $this->validate($request, [
+            'date' => 'required|date|after:' . date('d.m.Y', strtotime("yesterday")) . '|before:' . date("d.m.Y", strtotime("+2 weeks"))
+        ]);
+        // Проверяем, что день не выходной
+        if(date("l", strtotime($request->input('date'))) == "Saturday" || date("l", strtotime($request->input('date'))) == "Sunday") {
+            return redirect('/visits/add')->with('status', 'bad date - weekends');
+        }
+        // Получаем id всех врачей данной специальности
+        // И для удобства записываем это в виде массива
+        $specDoctors = array();
+        foreach (DB::table('clinic-doctors')->where('spec', DB::table('clinic-doctors')->where('id', $medic_id)->select('spec')->first()->spec)->select('id')->get()->all() as $doctor) {
+            $specDoctors[] = $doctor->id;
+        }
+        //print_r($specDoctors);
+        // Получаем все записи с врачами нужной специальности
+        // Также переведем в массив для удобства
+        $visitDoctors = array();
+        foreach (DB::table('clinic-visits')->where([ ['id_patient', $patient_id], ['date', '>=', date('Y-m-d')] ])->whereIn('id_medic', $specDoctors)->orderBy('date')->get()->all() as $doctor) {
+            $visitDoctors[] = $doctor->id_medic;
+        }
+        print_r($visitDoctors);
+        // Проверяем, пустой ли массив (если пустой - всё ок, записей к врачам данной спеки - нет)
+        // Иначе же, просто редирект + уведомление
+        if (!empty($visitDoctors)) {
+            return redirect('/visits/add')->with('status', 'visits - same spec');
+        }
+        if ($patient_id == session('user')->id) {
+            DB::table('clinic-visits')->insert([
+                'date' => date('Y-m-d', strtotime($request->input('date'))),
+                'id_medic' => $medic_id,
+                'id_patient' => $patient_id
+            ]);
+            return redirect('/visits/add')->with('status', 'visit added');
+        }
+    }
+
+    public function visit_update(Request $request, $id) {
+        $this->validate($request, [
+            'date' => 'required|date|after:' . date('d.m.Y', strtotime("today")) . '|before:' . date("d.m.Y", strtotime("+2 weeks"))
+        ]);
+        if(date("l", strtotime($request->input('date'))) == "Saturday" || date("l", strtotime($request->input('date'))) == "Sunday") {
+            return redirect('/visits/add')->with('status', 'bad date - weekends');
+        }
+        DB::table('clinic-visits')
+                    ->where('id', $id)
+                    ->update(['date' => $request->input('date')]);
+        return redirect('/visits/add')->with('status', 'visit updated');
+    }
+
+    public function visit_delete($id) {
+        // Получаем запись из таблицы, для верификации действий
+        $visit = DB::table('clinic-visits')->where('id', $id)->first();
+        // Проверяем, не обманывают ли нас
+        if($visit->id_patient == session('user')->id) {
+            // Удаляем
+            DB::table('clinic-visits')->where('id', $id)->delete();
+            // Редирект к остальным записям + статус.
+            return redirect('/visits/add')->with('status', 'visit deleted');
+        }
+        // Обман/ошибка - редирект к записям.
+        return redirect('/visits/add');
     }
 }

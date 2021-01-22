@@ -21,10 +21,6 @@ class DefaultRoutesController extends Controller
         return view('main', ['amountPatients' => $amountPatients, 'amountDoctors' => $amountDoctors, 'amountEmploy' => $amountEmploy]);
     }
 
-    public function about() {
-        return view('about');
-    }
-
     public function sign_in() {
         // Проверяем, авторизован ли пользователь.
         if (session()->has('userInfo')) {
@@ -58,5 +54,6 @@ class DefaultRoutesController extends Controller
                 return view('admin-lk');
             }
         }
+        return redirect('/users/sign_in')->with('status', 'non authorized');
     }
 }

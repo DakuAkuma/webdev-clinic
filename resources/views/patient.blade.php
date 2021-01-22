@@ -6,7 +6,7 @@
 @section('content')
 
 <h2 class="text-center mb-3">Добро пожаловать в ваш личный кабинет</h2>
-<h4 class="text-center mb-3">Здравствуйте, {{ session('user')->name . " " . session('user')->patronymic }}.</h3>
+<h4 class="text-center mb-3">Здравствуйте, {{ session('user')->name . " " . session('user')->patronymic }}.</h4>
 
 <div class="container pt-2">
     <div class="row mb-4">

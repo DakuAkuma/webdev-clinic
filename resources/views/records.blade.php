@@ -23,6 +23,12 @@
     </div>
 </div>
 
+@if($records->count() == 0)
+
+<h3 class="text-center pt-2 pb-3 border rounded">Медицинские записи отсутствуют</h3>
+
+@else
+
 <div class="container-fluid border rounded pb-2 w-auto mb-2">
     <h3 class="pl-5 pt-1 pb-1">Медицинские записи</h3>
     
@@ -59,6 +65,9 @@
         </tbody>
     </table>
 </div>
+
+@endif
+
 <div class="container">
     <a class="btn btn-danger float-right" href="/users/profile">Вернуться к личный кабинет</a>
 </div>

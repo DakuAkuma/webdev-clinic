@@ -24,7 +24,6 @@
             <h5 class="my-0 mr-md-auto font-weight-normal text-light">Поликлиника №155</h5>
             <nav class="my-2 my-md-0 mr-md-3">
                 <a class="p-2 text-light" href="/">Главная</a>
-                <a class="p-2 text-light" href="/about">Про нас</a>
                 @if(session('userInfo'))
                     <a class="p-2 text-light" href="/users/profile">Личный кабинет</a>
                 @else
@@ -91,6 +90,60 @@
             <div class="alert alert-warning alert-dismissible fade show" role="alert">
             <strong>Неверно введен пароль!</strong>
             <p>Проверьте правильность введенного пароля и повторите попытку входа</p>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            </div>
+
+            @elseif(session('status') == "bad date - weekends")
+
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Введите день в пределах рабочей недели (понедельник-пятница)!</strong>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            </div>
+
+            @elseif(session('status') == "visit added")
+
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>Запись создана успешно!</strong>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            </div>
+
+            @elseif(session('status') == "visit updated")
+
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <strong>Запись изменена успешно!</strong>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            </div>
+
+            @elseif(session('status') == "visit deleted")
+
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <strong>Запись удалена успешно!</strong>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            </div>
+
+            @elseif(session('status') == "visits - same spec")
+
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Запрещено иметь более 1 записи к врачу одной специальности!</strong>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            </div>
+
+            @elseif(session('status') == "non authorized")
+
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <strong>Авторизуйтесь для доступа к личному кабинету!</strong>
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
