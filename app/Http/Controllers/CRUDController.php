@@ -301,7 +301,6 @@ class CRUDController extends Controller
         // for debug
         //dd($request);
         // Проверка на совпадение id текущего пользователя с запрашиваемым на удаление id.
-        //echo session('userInfo')->id;
         if (session('userInfo')->id == $id) {
             DB::table('clinic-users')
                         ->where('id', $id)

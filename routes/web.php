@@ -56,3 +56,9 @@ Route::post('/visits/add/validate/{patient_id}/{medic_id}', 'PatientController@v
 Route::post('/visits/{id}/update', 'PatientController@visit_update');
 /* Delete visit */
 Route::get('/visits/{id}/delete', 'PatientController@visit_delete');
+
+/* Records block */
+/* Get page to add record */
+Route::get('/records/add', 'EmployController@records');
+/* POST for validation */
+Route::post('/records/add/validate', 'EmployController@records_validate');

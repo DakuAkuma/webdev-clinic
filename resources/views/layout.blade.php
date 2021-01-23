@@ -158,7 +158,7 @@
                     <h4>Ой-ой-ой. Кажется, произошла ошибка</h4>
                     <ul>
                         @foreach($errors->all() as $error)
-                            <li>{{ str_replace(['login', 'password', 'surname', 'name', 'patronymic', 'address', 'phone', 'class', 'seria', 'nomer', 'birthdate'],['Логин', 'Пароль', 'Фамилия', 'Имя', 'Отчество', 'Адрес', 'Номер телефона', 'Социальный статус', 'Серия паспорта', 'Номер паспорта', 'Дата рождения'],$error) }}</li>
+                            <li>{{ str_replace(['login', 'password', 'surname', 'name', 'patronymic', 'address', 'phone', 'class', 'seria', 'nomer', 'birthdate', 'illness'], ['Логин', 'Пароль', 'Фамилия', 'Имя', 'Отчество', 'Адрес', 'Номер телефона', 'Социальный статус', 'Серия паспорта', 'Номер паспорта', 'Дата рождения', 'Диагноз'],$error) }}</li>
                         @endforeach
                     </ul>
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">

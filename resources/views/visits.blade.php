@@ -7,11 +7,11 @@
 
 <h3 class="pl-4">Записаться на приём</h3>
 
-<div class="container border rounded bg-white mb-2">
+<div class="container border rounded bg-white mb-2 pr-4">
     <form action="/visits/add">
         <h5 class="ml-4 pt-1">Выбор специальности врача</h5>
         <div class="row d-flex justify-content-around align-items-center">
-            <div class="form-group col-md-8">
+            <div class="form-group col-md-10">
                 <select class="form-control" id="spec" name="spec">
                     <option value="" selected disabled hidden>{{ (empty($_REQUEST['spec'])) ? "Не выбрано" : $_REQUEST['spec'] }}</option>
                     @foreach($specials as $id => $spec)
@@ -19,7 +19,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="form-group col-md-4">
+            <div class="form-group col-md-2">
                 <button class="btn btn-dark btn-block" type="submit">Выбрать</button>
             </div>
         </div>
@@ -87,9 +87,9 @@
 @if(count($hot) != 0)
     <div class="container mb-2 pl-0">
         <h3 class="pl-4 mb-3">Записи на сегодня, не забудьте посетить</h3>
-        <div class="row">
+        <div class="row pl-1">
             @foreach($hot as $id => $visit)
-            <div class="card mr-2" style="width: 18rem;">
+            <div class="card mr-2 mb-2" style="width: 17rem;">
                 <div class="card-body">
                     <h5 class="card-title">Запись #{{$id+1}}</h5>
                     <h6 class="card-subtitle mb-3 text-muted">{{array_last($doctors->where('id', $visit->id_medic)->all())->spec}}</h6>
@@ -173,9 +173,9 @@
 @if(count($actual) != 0)
     <div class="container pl-0">
         <h3 class="pl-4 mb-3">Ближайшие записи</h3>
-        <div class="row">
+        <div class="row pl-1">
             @foreach($actual as $id => $visit)
-            <div class="card mr-2" style="width: 18rem;">
+            <div class="card mr-2 mb-2" style="width: 17rem;">
                 <div class="card-body">
                     <h5 class="card-title">Предстоящая запись #{{$id+1}}</h5>
                     <h6 class="card-subtitle mb-3 text-muted">{{array_last($doctors->where('id', $visit->id_medic)->all())->spec}}</h6>
@@ -259,9 +259,9 @@
 @if(count($archive) != 0)
     <div class="container pl-0">
         <h3 class="pl-4 mb-3">Архив записей</h3>
-        <div class="row">
+        <div class="row pl-1">
             @foreach($archive as $id => $visit)
-            <div class="card mr-2" style="width: 15rem;">
+            <div class="card mr-2 mb-2" style="width: 15rem;">
                 <div class="card-body">
                     <h5 class="card-title">Архивная запись #{{$id+1}}</h5>
                     <h6 class="card-subtitle mb-3 text-muted">{{array_last($doctors->where('id', $visit->id_medic)->all())->spec}}</h6>

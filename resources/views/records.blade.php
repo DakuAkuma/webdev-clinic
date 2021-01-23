@@ -49,7 +49,7 @@
             @foreach($records as $id => $record)
             <tr>
                 <th scope="row" class="align-middle">{{$id+1}}</th>
-                <td class="align-middle">{{ (empty($visits)) ? "Отсутствует" : $visits[$id]->date }}</td>
+                <td class="align-middle">{{ (empty($visits)) ? "Отсутствует" : date("d.m.Y", strtotime($visits[$id]->date)) }}</td>
                 <td class="align-middle">{{$illnesses[$id]->illness}}</td>
                 <td class="align-middle">{{$record->disabled}}</td>
                 <td class="align-middle">{{$record->ambulary}}</td>
