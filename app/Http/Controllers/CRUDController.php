@@ -2,316 +2,338 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\DB;
+use App\User;
+use App\Patient;
+use App\Doctor;
+use App\Employee;
+use App\Record;
+use App\Visit;
+use App\Illness;
 use Illuminate\Http\Request;
 
 class CRUDController extends Controller
 {
-    public function create(Request $request) {
 
+    public function createPage(Request $request) {
+        if (session('userInfo')->role == "admin") {
+            return view('create_page');
+        }
+        return redirect()->back();
     }
 
-    public function read($id) {
+
+
+    public function create(Request $request, $userRole) {
+        if (session('userInfo')->role == "admin") {
+            // Проверяем тип учетной записи (пациент, сотрудник, медик).
+            if($userRole == "patient") {
+                // Валидация введенных данных
+                $this->validate($request, [
+                    'surname' => 'required|min:2|max:48',
+                    'name' => 'required|min:2|max:48',
+                    'patronymic' => 'nullable|min:2|max:48',
+                    'address' => 'required|min:25|max:255',
+                    'login' => 'required|min:5|max:32|unique:users,login',
+                    'password' => 'required|min:10|max:255',
+                    'seria' => 'required|size:4',
+                    'nomer' => 'required|size:6',
+                    'phone' => 'required|min:11|max:20',
+                    'birthdate' => 'required|date|after:' . date('d.m.Y', strtotime("-110 years")) . '|before:' . date("d.m.Y", strtotime("-18 years")),
+                    'class' => 'required'
+                ]);
+
+                $newUser = User::create([
+                    'login' => $request->input('login'),
+                    'password' => md5($request->input('password')),
+                    'role' => 'patient',
+                ]);
+
+                Patient::create([
+                    'surname' => $request->input('surname'),
+                    'name' => $request->input('name'),
+                    'patronymic' => $request->input('patronymic'),
+                    'tel' => $request->input('phone'),
+                    'address' => $request->input('address'),
+                    'birthdate' => $request->input('birthdate'),
+                    'passport' => $request->input('seria') . " " . $request->input('nomer'),
+                    'class' => $request->input('class'),
+                    'status' => 'Здоров',
+                    'user_id' => $newUser->id
+                ]);
+            }
+
+            elseif($userRole == "employer") {
+                // Валидация введенных данных
+                $this->validate($request, [
+                    'surname' => 'required|min:2|max:48',
+                    'name' => 'required|min:2|max:48',
+                    'patronymic' => 'nullable|min:2|max:48',
+                    'rank' => 'required|max:255',
+                    'salary' => 'required|max:10',
+                    'exp' => 'required|max:32',
+                    'login' => 'required|min:5|max:32|unique:users,login',
+                    'password' => 'required|min:10|max:255',
+                    'tel' => 'nullable|min:11|max:20',
+                ]);
+
+                if(intval($request->input('salary')) <= 0) {
+                    return redirect('/admin')->with('status', 'too low salary');
+                }
+
+                $newUser = User::create([
+                    'login' => $request->input('login'),
+                    'password' => md5($request->input('password')),
+                    'role' => 'employer',
+                ]);
+
+                Employee::create([
+                    'surname' => $request->input('surname'),
+                    'name' => $request->input('name'),
+                    'patronymic' => $request->input('patronymic'),
+                    'tel' => $request->input('tel'),
+                    'rank' => $request->input('rank'),
+                    'salary' => intval($request->input('salary')),
+                    'exp' => $request->input('exp'),
+                    'user_id' => $newUser->id
+                ]);
+            }
+
+            elseif($userRole == "medic") {
+                // Валидация введенных данных
+                $this->validate($request, [
+                    'surname' => 'required|min:2|max:48',
+                    'name' => 'required|min:2|max:48',
+                    'patronymic' => 'nullable|min:2|max:48',
+                    'tel' => 'nullable|min:11|max:20',
+                    'spec' => 'required|max:48',
+                    'quality' => 'required|max:55',
+                    'salary' => 'required|max:10',
+                    'exp' => 'required|max:32',
+                    'cabinet' => 'required|min:3|max:3',
+                    'login' => 'required|min:5|max:32|unique:users,login',
+                    'password' => 'required|min:10|max:255',
+                    
+                ]);
+
+                if(intval($request->input('salary')) <= 0) {
+                    return redirect('/admin')->with('status', 'too low salary');
+                }
+
+                if(intval($request->input('cabinet')) <= 100) {
+                    return redirect('/admin')->with('status', 'cabinet <3');
+                }
+
+                $newUser = User::create([
+                    'login' => $request->input('login'),
+                    'password' => md5($request->input('password')),
+                    'role' => 'medic',
+                ]);
+
+                Doctor::create([
+                    'surname' => $request->input('surname'),
+                    'name' => $request->input('name'),
+                    'patronymic' => $request->input('patronymic'),
+                    'tel' => $request->input('tel'),
+                    'spec' => $request->input('spec'),
+                    'quality' => $request->input('quality'),
+                    'salary' => intval($request->input('salary')),
+                    'exp' => $request->input('salary'),
+                    'cabinet' => intval($request->input('cabinet')),
+                    'user_id' => $newUser->id
+                ]);
+            }
+            redirect('/admin')->with('status', 'successful create');
+        }
+        return view('create_page');
+    }
+
+
+    public function read() {
         // Защита от подсмотров от имени другого пользователя.
-        if(session('userInfo')->role == "patient" && $id == session('userInfo')->id) {
-            $records = DB::table('clinic-records')->where('id_patient', session('user')->id)->get();
+        if(session('userInfo')->role == "patient") {
+            $records = Record::where('patient_id', session('user')->id)->get();
             $doctors = array();
             $visits = array();
             $illnesses = array();
             //echo var_dump($records);
             if($records->count() != 0) {
-                foreach ($records as $record) {
-                    if(isset($record->id_medic)) {
-                        $doctors[] = DB::table('clinic-doctors')->select('surname', 'name', 'patronymic', 'spec')->where('id', $record->id_medic)->first();
+                foreach ($records as $id => $record) {
+                    if(isset($record->medic_id)) {
+                        $doctors[$id] = Doctor::where('id', $record->medic_id)->select('surname', 'name', 'patronymic', 'spec')->first();
                     }
-                    if(isset($record->id_visit)) {
-                        $visits[] = DB::table('clinic-visits')->select('date')->where('id', $record->id_visit)->first();
+                    if(isset($record->visit_id)) {
+                        $visits[$id] = Visit::where('id', $record->visit_id)->select('date')->first();
                     }
-                    if(isset($record->id_illness)) {
-                        $illnesses[] = DB::table('clinic-illnesses')->select('illness')->where('id', $record->id_illness)->first();
+                    if(isset($record->illness_id)) {
+                        $illnesses[$id] = Illness::where('id', $record->illness_id)->select('illness')->first();
                     }
                 }
             }
-            // print_r($doctors);
-            // print_r(is_null($visits));
-            // print_r($illnesses);
-            return view('records', [ 'records' => $records, 'doctors' => $doctors, 'visits' => $visits, 'illnesses' => $illnesses ]);
+            return view('archive', [ 'records' => $records, 'doctors' => $doctors, 'visits' => $visits, 'illnesses' => $illnesses ]);
+        } else {
+            return redirect()->back();
         }
     }
 
-    public function update(Request $request, $id) {
-        // for degug
-        //dd($request->except(['_token', 'patronymic']));
+    public function update(Request $request) {
         // Обработка поступившего пользователя, определяем с какой из 3 таблиц работать.
-        if (session('userInfo')->role == "patient" && $id == session('userInfo')->id) {
+        if (session('userInfo')->role == "patient") {
             $this->validate($request, [
                 'surname' => 'nullable|min:2|max:48',
                 'name' => 'nullable|min:2|max:48',
                 'address' => 'nullable|min:25|max:255',
-                'login' => 'nullable|min:5|max:32|unique:clinic-users,login',
+                'login' => 'nullable|min:5|max:32|unique:users,login',
                 'password' => 'nullable|min:10|max:255',
                 'seria' => 'nullable|size:4',
                 'nomer' => 'nullable|size:6',
                 'phone' => 'nullable|min:11|max:20',
                 'class' => 'nullable'
             ]);
-            $patientData = DB::table('clinic-patients')->where('user_id', $id)->first();
-            $userData = DB::table('clinic-users')->select('login', 'password')->where('id', $id)->first();
-            //echo print_r($patientData), '<br>', print_r($userData);
 
             /* !!!Блок обновления персональных данных пациента!!! */
 
-            // Проверяем, заполнено ли поле surname
-            if($request->has('surname')) {
-                // Проверяем совпадают ли введенные данные с актуальной информацией
-                // Если ввод не совпадает с актуальной информацией, обновляем
-                if($request->input('surname') != $patientData->surname) {
-                    DB::table('clinic-patients')
-                                ->where('id', $patientData->id)
-                                ->update(['surname' => $request->input('surname')]);
-                }
+            // Проверяем, заполнено ли поле surname и
+            // проверяем совпадают ли введенные данные с актуальной информацией
+            // если ввод не совпадает с актуальной информацией, обновляем
+            if(($request->input('surname') != session('user')->surname) && $request->has('surname')) {
+                Patient::where('id', session('user')->id)
+                        ->update(['surname' => $request->input('surname')]);
             }
+
             // Проверяем, заполнено ли поле name
-            if($request->has('name')) {
-                // Проверяем совпадают ли введенные данные с актуальной информацией
-                // Если ввод не совпадает с актуальной информацией, обновляем
-                if($request->input('name') != $patientData->name) {
-                    DB::table('clinic-patients')
-                                ->where('id', $patientData->id)
-                                ->update(['name' => $request->input('name')]);
-                }
+            // проверяем совпадают ли введенные данные с актуальной информацией
+            // если ввод не совпадает с актуальной информацией, обновляем
+            if(($request->input('name') != session('user')->name) && $request->has('name')) {
+                Patient::where('id', session('user')->id)
+                        ->update(['name' => $request->input('name')]);
             }
             // Проверяем, заполнены ли поля seria и nomer (иначе нельзя менять данные)
             if($request->has('seria') && $request->has('nomer')) {
                 // Проверяем совпадают ли введенные данные с актуальной информацией
                 // Если ввод не совпадает с актуальной информацией, обновляем
-                if($request->input('seria') != substr($patientData->passport,0,4) && $request->input('nomer') != substr($patientData->passport,5,10)) {
-                    DB::table('clinic-patients')
-                                ->where('id', $patientData->id)
-                                ->update(['passport' => $request->input('seria') . " " . $request->input('nomer')]);
+                if($request->input('seria') != substr(session('user')->passport,0,4) && $request->input('nomer') != substr(session('user')->passport,5,10)) {
+                    Patient::where('id', session('user')->id)
+                            ->update(['passport' => $request->input('seria') . " " . $request->input('nomer')]);
                 }
+            } elseif (($request->has('seria') && !$request->has('nomer')) || (!$request->has('seria') && $request->has('nomer'))) {
+              return redirect('/profile')->with('status', 'passport error');
             }
+
             // Проверяем, заполнено ли поле address
-            if($request->has('address')) {
-                // Проверяем совпадают ли введенные данные с актуальной информацией
-                // Если ввод не совпадает с актуальной информацией, обновляем
-                if($request->input('address') != $patientData->address) {
-                    DB::table('clinic-patients')
-                                ->where('id', $patientData->id)
-                                ->update(['address' => $request->input('address')]);
-                }
+            // проверяем совпадают ли введенные данные с актуальной информацией
+            // если ввод не совпадает с актуальной информацией, обновляем
+            if(($request->input('address') != session('user')->address) && $request->has('address')) {
+                Patient::where('id', session('user')->id)
+                        ->update(['address' => $request->input('address')]);
             }
             // Проверяем, заполнено ли поле phone
-            if($request->has('phone')) {
-                // Проверяем совпадают ли введенные данные с актуальной информацией
-                // Если ввод не совпадает с актуальной информацией, обновляем
-                if($request->input('phone') != $patientData->tel) {
-                    DB::table('clinic-patients')
-                                ->where('id', $patientData->id)
-                                ->update(['tel' => $request->input('phone')]);
-                }
+            // проверяем совпадают ли введенные данные с актуальной информацией
+            // если ввод не совпадает с актуальной информацией, обновляем
+            if(($request->input('phone') != session('user')->tel) && $request->has('phone')) {
+                Patient::where('id', session('user')->id)
+                        ->update(['tel' => $request->input('phone')]);
             }
             // Проверяем, изменено ли значение поля class.
-            if($request->input('class') != $patientData->class) {
+            if($request->input('class') != session('user')->class && !empty($request->input('class'))) {
                 // В случае, если изменен соц. статус, заносим в таблицу, без доп. проверок.
-                DB::table('clinic-patients')
-                                ->where('id', $patientData->id)
-                                ->update(['class' => $request->input('class')]);
+                Patient::where('id', session('user')->id)
+                        ->update(['class' => $request->input('class')]);
             }
-
-            /* !!!Блок обновления данных пользователя!!! */
-
-            // Проверяем, заполнено ли поле login
-            if($request->has('login')) {
-                // Благодаря валидации данных не проверяем на совпадение с актуальной информацией, сразу обновляем.
-                DB::table('clinic-users')
-                                ->where('id', $id)
-                                ->update(['login' => $request->input('login')]);
-            }
-            // Проверяем, заполнено ли поле password
-            if($request->has('password')) {
-                // Проверяем совпадают ли введенные данные с актуальной информацией
-                // Если ввод не совпадает с актуальной информацией, обновляем
-                if(md5($request->input('password')) != $userData->password) {
-                    DB::table('clinic-users')
-                                ->where('id', $id)
-                                ->update(['password' => md5($request->input('password'))]);
-                }
-            }
-            $request->session()->put('userInfo', DB::table('clinic-users')->where('id', session('userInfo')->id)->first());
-            $request->session()->put('user', DB::table('clinic-patients')->where('id', $id)->first());
+            $request->session()->put('user', Patient::where('id', session('user')->id)->first());
         }
-        elseif(session('userInfo')->role == "admin" && $id == session('userInfo')->id) {
-            $this->validate($request, [
-                'login' => 'nullable|min:5|max:32|unique:clinic-users,login',
-                'password' => 'nullable|min:10|max:255'
-            ]);
-            $userData = DB::table('clinic-users')->select('login', 'password')->where('id', $id)->first();
-            // Заполнено ли поле login
-            if($request->has('login')) {
-                // Благодаря валидации данных не проверяем на совпадение с актуальной информацией, сразу обновляем.
-                DB::table('clinic-users')
-                                ->where('id', $id)
-                                ->update(['login' => $request->input('login')]);
-            }
-            // Проверяем, заполнено ли поле password
-            if($request->has('password')) {
-                // Проверяем совпадают ли введенные данные с актуальной информацией
-                // Если ввод не совпадает с актуальной информацией, обновляем
-                if(md5($request->input('password')) != $userData->password) {
-                    DB::table('clinic-users')
-                                ->where('id', $id)
-                                ->update(['password' => md5($request->input('password'))]);
-                }
-            }
-            $request->session()->put('user', DB::table('clinic-users')->where('id', $id)->first());
-        }
-        elseif(session('userInfo')->role == "employer" && $id == session('userInfo')->id) {
+        elseif(session('userInfo')->role == "employer") {
             $this->validate($request, [
                 'surname' => 'nullable|min:2|max:48',
                 'name' => 'nullable|min:2|max:48',
-                'login' => 'nullable|min:5|max:32|unique:clinic-users,login',
+                'login' => 'nullable|min:5|max:32|unique:users,login',
                 'password' => 'nullable|min:10|max:255',
                 'phone' => 'nullable|min:11|max:20'
             ]);
-            $employData = DB::table('clinic-employees')->where('user_id', $id)->first();
-            $userData = DB::table('clinic-users')->select('login', 'password')->where('id', $id)->first();
+
             /* Блок работы с персональными данными сотрудника */
-            if($request->has('surname')) {
-                // Проверяем совпадают ли введенные данные с актуальной информацией
-                // Если ввод не совпадает с актуальной информацией, обновляем
-                if($request->input('surname') != $employData->surname) {
-                    DB::table('clinic-employees')
-                                ->where('id', $employData->id)
-                                ->update(['surname' => $request->input('surname')]);
-                }
+
+            // Проверяем совпадают ли введенные данные с актуальной информацией
+            // если ввод не совпадает с актуальной информацией, обновляем
+            if(($request->input('surname') != session('user')->surname) && $request->has('surname')) {
+                Employee::where('id', session('user')->id)
+                        ->update(['surname' => $request->input('surname')]);
             }
             // Проверяем, заполнено ли поле name
-            if($request->has('name')) {
-                // Проверяем совпадают ли введенные данные с актуальной информацией
-                // Если ввод не совпадает с актуальной информацией, обновляем
-                if($request->input('name') != $employData->name) {
-                    DB::table('clinic-employees')
-                                ->where('id', $employData->id)
-                                ->update(['name' => $request->input('name')]);
-                }
+            // проверяем совпадают ли введенные данные с актуальной информацией
+            // если ввод не совпадает с актуальной информацией, обновляем
+            if(($request->input('name') != session('user')->name) && $request->has('name')) {
+                Employee::where('id', session('user')->id)
+                        ->update(['name' => $request->input('name')]);
             }
             // Проверяем, заполнено ли поле phone
-            if($request->has('phone')) {
-                // Проверяем совпадают ли введенные данные с актуальной информацией
-                // Если ввод не совпадает с актуальной информацией, обновляем
-                if($request->input('phone') != $employData->tel) {
-                    DB::table('clinic-employees')
-                                ->where('id', $employData->id)
-                                ->update(['tel' => $request->input('phone')]);
-                }
+            // проверяем совпадают ли введенные данные с актуальной информацией
+            // если ввод не совпадает с актуальной информацией, обновляем
+            if(($request->input('phone') != session('user')->tel) && $request->has('phone')) {
+                Employee::where('id', session('user')->id)
+                        ->update(['tel' => $request->input('phone')]);
             }
-            
-            /* Блок работы с данными пользователя */
-
-            // Заполнено ли поле login
-            if($request->has('login')) {
-                // Благодаря валидации данных не проверяем на совпадение с актуальной информацией, сразу обновляем.
-                DB::table('clinic-users')
-                                ->where('id', $id)
-                                ->update(['login' => $request->input('login')]);
-            }
-            // Проверяем, заполнено ли поле password
-            if($request->has('password')) {
-                // Проверяем совпадают ли введенные данные с актуальной информацией
-                // Если ввод не совпадает с актуальной информацией, обновляем
-                if(md5($request->input('password')) != $userData->password) {
-                    DB::table('clinic-users')
-                                ->where('id', $id)
-                                ->update(['password' => md5($request->input('password'))]);
-                }
-            }
-            $request->session()->put('userInfo', DB::table('clinic-users')->where('id', session('userInfo')->id)->first());
-            $request->session()->put('user', DB::table('clinic-employees')->where('user_id', $id)->first());
+            $request->session()->put('user', Employee::where('user_id', session('user')->id)->first());
         }
-        elseif(session('userInfo')->role == "medic" && $id == session('userInfo')->id) {
+        elseif(session('userInfo')->role == "medic") {
             $this->validate($request, [
                 'surname' => 'nullable|min:2|max:48',
                 'name' => 'nullable|min:2|max:48',
-                'login' => 'nullable|min:5|max:32|unique:clinic-users,login',
+                'login' => 'nullable|min:5|max:32|unique:users,login',
                 'password' => 'nullable|min:10|max:255',
                 'phone' => 'nullable|min:11|max:20'
             ]);
-            $medicData = DB::table('clinic-doctors')->where('user_id', $id)->first();
-            $userData = DB::table('clinic-users')->select('login', 'password')->where('id', $id)->first();
+
             /* Блок работы с персональными данными сотрудника */
-            if($request->has('surname')) {
-                // Проверяем совпадают ли введенные данные с актуальной информацией
-                // Если ввод не совпадает с актуальной информацией, обновляем
-                if($request->input('surname') != $medicData->surname) {
-                    DB::table('clinic-doctors')
-                                ->where('id', $medicData->id)
-                                ->update(['surname' => $request->input('surname')]);
-                }
+
+            // проверяем совпадают ли введенные данные с актуальной информацией
+            // если ввод не совпадает с актуальной информацией, обновляем
+            if(($request->input('surname') != session('user')->surname) && $request->has('surname')) {
+                Doctor::where('id', session('user')->id)
+                        ->update(['surname' => $request->input('surname')]);
             }
             // Проверяем, заполнено ли поле name
-            if($request->has('name')) {
-                // Проверяем совпадают ли введенные данные с актуальной информацией
-                // Если ввод не совпадает с актуальной информацией, обновляем
-                if($request->input('name') != $medicData->name) {
-                    DB::table('clinic-doctors')
-                                ->where('id', $medicData->id)
-                                ->update(['name' => $request->input('name')]);
-                }
+            // проверяем совпадают ли введенные данные с актуальной информацией
+            // если ввод не совпадает с актуальной информацией, обновляем
+            if(($request->input('name') != session('user')->name) && $request->has('name')) {
+                Doctor::where('id', session('user')->id)
+                        ->update(['name' => $request->input('name')]);
             }
             // Проверяем, заполнено ли поле phone
-            if($request->has('phone')) {
-                // Проверяем совпадают ли введенные данные с актуальной информацией
-                // Если ввод не совпадает с актуальной информацией, обновляем
-                if($request->input('phone') != $medicData->tel) {
-                    DB::table('clinic-doctors')
-                                ->where('id', $medicData->id)
-                                ->update(['tel' => $request->input('phone')]);
-                }
+            // проверяем совпадают ли введенные данные с актуальной информацией
+            // если ввод не совпадает с актуальной информацией, обновляем
+            if(($request->input('phone') != session('user')->tel) && $request->has('phone')) {
+                Doctor::where('id', session('user')->id)
+                        ->update(['tel' => $request->input('phone')]);
             }
-            
-            /* Блок работы с данными пользователя */
-
-            // Заполнено ли поле login
-            if($request->has('login')) {
-                // Благодаря валидации данных не проверяем на совпадение с актуальной информацией, сразу обновляем.
-                DB::table('clinic-users')
-                                ->where('id', $id)
-                                ->update(['login' => $request->input('login')]);
-            }
-            // Проверяем, заполнено ли поле password
-            if($request->has('password')) {
-                // Проверяем совпадают ли введенные данные с актуальной информацией
-                // Если ввод не совпадает с актуальной информацией, обновляем
-                if(md5($request->input('password')) != $userData->password) {
-                    DB::table('clinic-users')
-                                ->where('id', $id)
-                                ->update(['password' => md5($request->input('password'))]);
-                }
-            }
-            $request->session()->put('userInfo', DB::table('clinic-users')->where('id', session('userInfo')->id)->first());
-            $request->session()->put('user', DB::table('clinic-doctors')->where('user_id', $id)->first());
+            $request->session()->put('user', Doctor::where('user_id', session('user')->id)->first());
         }
+
+        /* Блок работы с данными пользователя (не зависит от роли пользователя) */
+
+        // Проверяем, заполнено ли поле login
+        if($request->has('login')) {
+            // Благодаря валидации данных не проверяем на совпадение с актуальной информацией, сразу обновляем.
+            User::where('id', session('userInfo')->id)
+                    ->update(['login' => $request->input('login')]);
+        }
+        // Проверяем, заполнено ли поле password
+        // проверяем совпадают ли введенные данные с актуальной информацией
+        // если ввод не совпадает с актуальной информацией, обновляем
+        if((md5($request->input('password')) != session('userInfo')->password) && $request->has('password')) {
+            User::where('id', session('userInfo')->id)
+                        ->update(['password' => md5($request->input('password'))]);
+        }
+        $request->session()->put('userInfo', User::where('id', session('userInfo')->id)->first());
+
         // После обновления данных, редирект в профиль с поздравлениями об успешном изменении данных пользователя :)
         
-        return redirect('/users/profile')->with('status', 'successful update');
+        return redirect('/profile')->with('status', 'successful update');
      }  
  
-     public function delete($id) {
-        // for debug
-        //dd($request);
-        // Проверка на совпадение id текущего пользователя с запрашиваемым на удаление id.
-        if (session('userInfo')->id == $id) {
-            DB::table('clinic-users')
-                        ->where('id', $id)
-                        ->delete();
-            // Обнуляем сессию.
-            session()->flush();
-            // Редирект на главную.
-            return redirect('/')->with('status', 'successful delete');
-        }
-        // Попытка обмануть - редирект в профиль.
-        return redirect('/users/profile');
+     public function delete() {
+        User::destroy(session('userInfo')->id);
+        session()->flush();
+        return redirect('/')->with('status', 'successful delete');
      }
 
 }
