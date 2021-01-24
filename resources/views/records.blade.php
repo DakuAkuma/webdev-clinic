@@ -1,36 +1,135 @@
-@extends('layout')
+@extends('layouts.app')
 
-<!-- Страница для отображения записей -->
-@section('title')Медицинская карта@endsection
+<!-- Страница для добавления записей в мед. карту -->
+@section('title')Создание медицинской записи@endsection
 
 @section('content')
 
-<h2 class="text-center mb-2">Медицинская карта пациента №{{ session('user')->id }}.</h2>
+<h3 class="pl-4">Создать запись</h3>
 
-<div class="container border rounded pb-2 w-50 mb-4">
-    <h3 class="pl-4">Персональные данные</h3>
-    <div class="row pl-4">
-        Фамилия: {{ session('user')->surname }}.
-    </div>
-    <div class="row pl-4">
-        Имя: {{ session('user')->name }}.
-    </div>
-    <div class="row pl-4">
-        Отчество: {{ session('user')->patronymic }}.
-    </div>
-    <div class="row pl-4">
-        Дата рождения: {{ date("d.m.Y", strtotime(session('user')->birthdate)) }} (полных лет: <? $d1 = new DateTime(date('d.m.Y')); $d2 = new DateTime(date('d.m.Y', strtotime(session('user')->birthdate))); echo $d2->diff($d1)->y; ?>).
+<div class="container border rounded bg-white mb-3 pr-4">
+    <form action="/records">
+        <h5 class="ml-4 pt-1">Выберите пациента</h5>
+        <div class="row d-flex justify-content-around align-items-center">
+            <div class="form-group col-md-10">
+                <select class="form-control" id="patient" name="patient">
+                    <option value="" selected disabled hidden>{{ (empty($_REQUEST['patient'])) ? "Не выбрано" : $_REQUEST['patient'] }}</option>
+                    @foreach($patients as $patient)
+                    <option>{{$patient->surname . " " . $patient->name . " " . $patient->patronymic}}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-group col-md-2">
+                <button class="btn btn-dark btn-block" type="submit">Выбрать</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+@if(session('currentPatient'))
+
+@if(count($records) == 0)
+
+<div class="container-fluid border rounded w-auto pb-5 mb-2">
+    <h3 class="pl-5 pt-1 pb-1 mb-4">Медицинские записи: {{ $_REQUEST['patient'] }}</h3>
+    <h5 class="text-center">Записи отсутствуют</h5>
+    <div class="row float-right pr-3">
+        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#create">Добавить запись</button>
     </div>
 </div>
 
-@if($records->count() == 0)
-
-<h3 class="text-center pt-2 pb-3 border rounded">Медицинские записи отсутствуют</h3>
+<div class="modal fade" id="create" tabindex="-1" role="dialog" aria-labelledby="createLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-body">
+        <form action="/records/{{ session('currentPatient')->id }}/add" method="post">
+        {{ csrf_field() }}
+            <div class="modal-header">
+                <h5 class="modal-title" id="createLabel">Добавление записи</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="form-row">
+                <div class="form-group col pt-1">
+                    <label for="fio">Полное ФИО пациента</label>
+                    <input class="form-control" id="fio" name="fio" type="text" value="{{ $_REQUEST['patient'] }}" readonly>
+                </div>
+            </div>
+            <div class="form-row">
+            <div class="form-group col-6 pt-1">
+                    <label for="disabled">Срок нетрудоспособности</label>
+                    <input class="form-control" id="disabled" name="disabled" placeholder="Введите срок нетрудоспособности пациента" type="text">
+                </div>
+                <div class="form-group col pt-1">
+                    <label for="ambulary">Амбулаторное лечение</label>
+                    <select name="ambulary" id="ambulary" class="form-control">
+                        <option value="" selected disabled hidden>Не выбрано</option>
+                        <option value="Требуется">Требуется</option>
+                        <option value="Не требуется">Не требуется</option>
+                        <option value="Срочно требуется">Срочно требуется</option>
+                    </select>
+                </div>
+                <div class="form-group col pt-1">
+                    <label for="dispans">Диспансерный учет</label>
+                    <select name="dispans" id="dispans" class="form-control">
+                        <option value="" selected disabled hidden>Не выбрано</option>
+                        <option value="Не наблюдается">Не наблюдается</option>
+                        <option value="Поставлен на учет">Поставлен на учет</option>
+                        <option value="Наблюдается">Наблюдается</option>
+                        <option value="Поставлен на учет">Снят с учета</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-4 pt-1">
+                    <label for="illness">Диагноз</label>
+                    <select name="illness" id="illness"class="form-control">
+                        <option value="" selected disabled hidden>Не выбрано</option>
+                        @foreach($allIlls as $ill)
+                        <option value="{{$ill->illness}}">{{$ill->illness}}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-group col-md-5 pt-1">
+                    <label for="status">Состояние пациента</label>
+                    <select name="status" id="status"class="form-control">
+                        <option value="" selected disabled hidden>Не выбрано</option>
+                        <option value="Здоров">Здоров</option>
+                        <option value="Лечится">Лечится</option>
+                        <option value="Вылечился">Вылечился</option>
+                        <option value="Направлен в стационар">Направлен в стационар</option>
+                        <option value="Умер">Умер</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-3 pt-1">
+                    <label for="date">Дата посещения</label>
+                    <select name="date" id="date"class="form-control">
+                        <option value="" selected disabled hidden>Отсутствует</option>
+                        @foreach($actual as $visit)
+                        <option value="{{$visit->date}}">{{ date("d.m.Y", strtotime($visit->date)) }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <label for="note">Примечание <small>(Не более 500 символов)</small></label>
+                <textarea class="form-control" id="note" name="note" rows="2" placeholder="Введите дополнительную информацию либо оставьте поле пустым"></textarea>
+            <div>
+            <div class="form-row pl-3 pt-3 pb-1">
+                <button type="submit" class="btn btn-success mr-2">Добавить запись</button>
+                <button type="button" class="btn btn-dark" data-dismiss="modal">Отмена</button>
+            </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 
 @else
 
-<div class="container-fluid border rounded pb-2 w-auto mb-2">
-    <h3 class="pl-5 pt-1 pb-1">Медицинские записи</h3>
+<div class="container-fluid border rounded w-auto pb-5 mb-2">
+    <h4 class="pl-5 pt-1 pb-1">Медицинские записи: {{ $_REQUEST['patient'] }}</h4>
     
     <table class="table table-borderless table-responsive">
         <thead class="">
@@ -38,7 +137,7 @@
             <th scope="col" class="align-middle">#</th>
             <th scope="col" class="align-middle">Дата</th>
             <th scope="col" class="align-middle">Диагноз</th>
-            <th scope="col" class="align-middle">Нетрудоспособен</th>
+            <th scope="col" class="align-middle">Срок нетрудоспособности</th>
             <th scope="col" class="align-middle">Амбулаторное лечение</th>
             <th scope="col" class="align-middle">Диспансерный учет</th>
             <th scope="col" class="align-middle">Примечание</th>
@@ -64,11 +163,101 @@
             @endforeach
         </tbody>
     </table>
+    <div class="row float-right pr-3">
+        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#create">Добавить запись</button>
+    </div>
+</div>
+
+<div class="modal fade" id="create" tabindex="-1" role="dialog" aria-labelledby="createLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-body">
+        <form action="/records/{{ session('currentPatient')->id }}/add" method="post">
+        {{ csrf_field() }}
+            <div class="modal-header">
+                <h5 class="modal-title" id="createLabel">Добавление записи</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="form-row">
+                <div class="form-group col pt-1">
+                    <label for="fio">Полное ФИО пациента</label>
+                    <input class="form-control" id="fio" name="fio" type="text" value="{{ $_REQUEST['patient'] }}" readonly>
+                </div>
+            </div>
+            <div class="form-row">
+            <div class="form-group col-6 pt-1">
+                    <label for="disabled_at">Срок нетрудоспособности</label>
+                    <input class="form-control" id="disabled" name="disabled" placeholder="Введите срок нетрудоспособности пациента" type="text">
+                </div>
+                <div class="form-group col pt-1">
+                    <label for="ambulary">Амбулаторное лечение</label>
+                    <select name="ambulary" id="ambulary" class="form-control">
+                        <option value="" selected disabled hidden>Не выбрано</option>
+                        <option value="Требуется">Требуется</option>
+                        <option value="Не требуется">Не требуется</option>
+                        <option value="Срочно требуется">Срочно требуется</option>
+                    </select>
+                </div>
+                <div class="form-group col pt-1">
+                    <label for="dispans">Диспансерный учет</label>
+                    <select name="dispans" id="dispans" class="form-control">
+                        <option value="" selected disabled hidden>Не выбрано</option>
+                        <option value="Не наблюдается">Не наблюдается</option>
+                        <option value="Поставлен на учет">Поставлен на учет</option>
+                        <option value="Наблюдается">Наблюдается</option>
+                        <option value="Поставлен на учет">Снят с учета</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-4 pt-1">
+                    <label for="illness">Диагноз</label>
+                    <select name="illness" id="illness"class="form-control">
+                        <option value="" selected disabled hidden>Не выбрано</option>
+                        @foreach($allIlls as $ill)
+                        <option value="{{$ill->illness}}">{{$ill->illness}}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-group col-md-5 pt-1">
+                    <label for="status">Состояние пациента</label>
+                    <select name="status" id="status"class="form-control">
+                        <option value="" selected disabled hidden>Не выбрано</option>
+                        <option value="Здоров">Здоров</option>
+                        <option value="Лечится">Лечится</option>
+                        <option value="Вылечился">Вылечился</option>
+                        <option value="Направлен в стационар">Направлен в стационар</option>
+                        <option value="Умер">Умер</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-3 pt-1">
+                    <label for="date">Дата посещения</label>
+                    <select name="date" id="date"class="form-control">
+                        <option value="" selected disabled hidden>Отсутствует</option>
+                        @foreach($actual as $visit)
+                        <option value="{{$visit->date}}">{{ date("d.m.Y", strtotime($visit->date)) }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <label for="note">Примечание <small>(Не более 500 символов)</small></label>
+                <textarea class="form-control" id="note" name="note" rows="2" placeholder="Введите дополнительную информацию либо оставьте поле пустым"></textarea>
+            <div>
+            <div class="form-row pl-3 pt-3 pb-1">
+                <button type="submit" class="btn btn-success mr-2">Добавить запись</button>
+                <button type="button" class="btn btn-dark" data-dismiss="modal">Отмена</button>
+            </div>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 
 @endif
 
-<div class="container">
-    <a class="btn btn-danger float-right" href="/users/profile">Вернуться к личный кабинет</a>
-</div>
+@endif
+
 @endsection

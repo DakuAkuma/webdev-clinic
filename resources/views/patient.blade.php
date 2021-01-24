@@ -1,4 +1,4 @@
-@extends('layout')
+@extends('layouts.app')
 
 <!-- Название страницы, её title -->
 @section('title')Личный кабинет пациента@endsection
@@ -12,7 +12,7 @@
     <div class="row mb-4">
         <div class="col-md-4">
             Ваше состояние: {{ session('user')->status }}. <br> 
-            Вы являетесь: пациентом.
+            Вы являетесь пациентом.
         </div>
         <div class="col-md-4">
             Ваш социальный статус: {{ session('user')->class }}. <br>
@@ -28,7 +28,7 @@
         <!-- Окно обновления данных (логин, пароль, паспортные данные, ФИО, соц. статус, номер телефона, адрес проживания) УЗ (кнопка) -->
         <button type="button" class="btn btn-info btn-block" data-toggle="modal" data-target="#update">Изменить данные</button>
         <!-- Просмотр записей -->
-        <a href="/{{session('userInfo')->role}}/{{session('userInfo')->id}}/view" class="btn btn-success btn-block">Мед. карта</a>
+        <a href="/records/view" class="btn btn-success btn-block">Мед. карта</a>
         <!-- Подтверждение удаления УЗ (кнопка) -->
         <button type="button" class="btn btn-warning btn-block" data-toggle="modal" data-target="#delete">Удалить аккаунт</button>
         <!-- Модальное окно для подтверждения выхода из УЗ (кнопка) -->
@@ -70,7 +70,7 @@
                 Данное действие, как и его последствия невозможно отменить.
             </div>
             <div class="modal-footer">
-                <a class="btn btn-danger" href="/{{session('userInfo')->id}}/delete">Удалить</a>
+                <a class="btn btn-danger" href="/profile/delete">Удалить</a>
                 <button type="button" class="btn btn-success" data-dismiss="modal">Отмена</button>
             </div>
             </div>
@@ -88,7 +88,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form method="post" action="/{{session('userInfo')->role}}/{{session('userInfo')->id}}/update">
+                <form method="post" action="/profile/update">
                 {{ csrf_field() }}
                     <div class="form-row">
                         <div class="form-group col-md-4">
@@ -151,7 +151,6 @@
                 </form>
             </div>
             </div>
-        </div>
         </div>
     </div>
 </div>

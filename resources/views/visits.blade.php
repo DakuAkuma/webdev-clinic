@@ -1,4 +1,4 @@
-@extends('layout')
+@extends('layouts.app')
 
 <!-- Страница для работы с записями на прием -->
 @section('title')Запись на прием@endsection
@@ -8,7 +8,7 @@
 <h3 class="pl-4">Записаться на приём</h3>
 
 <div class="container border rounded bg-white mb-2 pr-4">
-    <form action="/visits/add">
+    <form action="/visits">
         <h5 class="ml-4 pt-1">Выбор специальности врача</h5>
         <div class="row d-flex justify-content-around align-items-center">
             <div class="form-group col-md-10">
@@ -55,7 +55,7 @@
                         <br>   
                         <strong>Кабинет:</strong>&nbsp;{{$doctor->cabinet}}.
                         <br>
-                        <form method="post" action="/visits/add/validate/{{session('user')->id}}/{{$doctor->id}}">
+                        <form method="post" action="/visits/add/{{$doctor->id}}">
                         {{ csrf_field() }}
                             <div class="form-row pl-2">
                                 <div class="form-group">
@@ -92,28 +92,28 @@
             <div class="card mr-2 mb-2" style="width: 17rem;">
                 <div class="card-body">
                     <h5 class="card-title">Запись #{{$id+1}}</h5>
-                    <h6 class="card-subtitle mb-3 text-muted">{{array_last($doctors->where('id', $visit->id_medic)->all())->spec}}</h6>
-                    <p class="card-text m-0">{{ array_last($doctors->where('id', $visit->id_medic)->all())->surname . " " . array_last($doctors->where('id', $visit->id_medic)->all())->name . " " . array_last($doctors->where('id', $visit->id_medic)->all())->patronymic }}</p>
-                    <p class="card-text m-0">Каб. {{ array_last($doctors->where('id', $visit->id_medic)->all())->cabinet }}</p>
+                    <h6 class="card-subtitle mb-3 text-muted">{{array_last($doctors->where('id', $visit->medic_id)->all())->spec}}</h6>
+                    <p class="card-text m-0">{{ array_last($doctors->where('id', $visit->medic_id)->all())->surname . " " . array_last($doctors->where('id', $visit->medic_id)->all())->name . " " . array_last($doctors->where('id', $visit->medic_id)->all())->patronymic }}</p>
+                    <p class="card-text m-0">Каб. {{ array_last($doctors->where('id', $visit->medic_id)->all())->cabinet }}</p>
                     <p class="card-text m-0 pb-2">{{ str_replace(['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'], date("l, d.m.Y", strtotime($visit->date))) }}</p>
                     <div class="row">
-                        <button type="button" class="btn btn-info btn-block mb-2" data-toggle="modal" data-target="#update{{array_last($doctors->where('id', $visit->id_medic)->all())->id}}">Изменить запись</button>
+                        <button type="button" class="btn btn-info btn-block mb-2" data-toggle="modal" data-target="#update{{array_last($doctors->where('id', $visit->medic_id)->all())->id}}">Изменить запись</button>
                         <!-- Window -->
-                        <div class="modal fade" id="update{{array_last($doctors->where('id', $visit->id_medic)->all())->id}}" tabindex="-1" role="dialog" aria-labelledby="update{{array_last($doctors->where('id', $visit->id_medic)->all())->id}}Title" aria-hidden="true">
+                        <div class="modal fade" id="update{{array_last($doctors->where('id', $visit->medic_id)->all())->id}}" tabindex="-1" role="dialog" aria-labelledby="update{{array_last($doctors->where('id', $visit->medic_id)->all())->id}}Title" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered" role="document">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="update{{array_last($doctors->where('id', $visit->id_medic)->all())->id}}Title">Изменение записи</h5>
+                                    <h5 class="modal-title" id="update{{array_last($doctors->where('id', $visit->medic_id)->all())->id}}Title">Изменение записи</h5>
                                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                         <span aria-hidden="true">&times;</span>
                                     </button>
                                 </div>
                                 <div class="modal-body">
-                                    <strong>Врач:</strong>&nbsp;{{array_last($doctors->where('id', $visit->id_medic)->all())->surname . " " . array_last($doctors->where('id', $visit->id_medic)->all())->name . " " . array_last($doctors->where('id', $visit->id_medic)->all())->patronymic}}.
+                                    <strong>Врач:</strong>&nbsp;{{array_last($doctors->where('id', $visit->medic_id)->all())->surname . " " . array_last($doctors->where('id', $visit->medic_id)->all())->name . " " . array_last($doctors->where('id', $visit->medic_id)->all())->patronymic}}.
                                     <br>
-                                    <strong>Специальность:</strong>&nbsp;{{array_last($doctors->where('id', $visit->id_medic)->all())->spec}}.
+                                    <strong>Специальность:</strong>&nbsp;{{array_last($doctors->where('id', $visit->medic_id)->all())->spec}}.
                                     <br>   
-                                    <strong>Кабинет:</strong>&nbsp;{{array_last($doctors->where('id', $visit->id_medic)->all())->cabinet}}.
+                                    <strong>Кабинет:</strong>&nbsp;{{array_last($doctors->where('id', $visit->medic_id)->all())->cabinet}}.
                                     <br>
                                     <form method="post" action="/visits/{{$visit->id}}/update">
                                     {{ csrf_field() }}
@@ -136,13 +136,13 @@
                             </div>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-danger btn-block" data-toggle="modal" data-target="#delete{{array_last($doctors->where('id', $visit->id_medic)->all())->id}}">Отменить запись</button>
+                        <button type="button" class="btn btn-danger btn-block" data-toggle="modal" data-target="#delete{{array_last($doctors->where('id', $visit->medic_id)->all())->id}}">Отменить запись</button>
                         <!-- Window -->
-                        <div class="modal fade" id="delete{{array_last($doctors->where('id', $visit->id_medic)->all())->id}}" tabindex="-1" role="dialog" aria-labelledby="delete{{array_last($doctors->where('id', $visit->id_medic)->all())->id}}Title" aria-hidden="true">
+                        <div class="modal fade" id="delete{{array_last($doctors->where('id', $visit->medic_id)->all())->id}}" tabindex="-1" role="dialog" aria-labelledby="delete{{array_last($doctors->where('id', $visit->medic_id)->all())->id}}Title" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered" role="document">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="delete{{array_last($doctors->where('id', $visit->id_medic)->all())->id}}Title">Отмена записи</h5>
+                                    <h5 class="modal-title" id="delete{{array_last($doctors->where('id', $visit->medic_id)->all())->id}}Title">Отмена записи</h5>
                                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                         <span aria-hidden="true">&times;</span>
                                     </button>
@@ -178,28 +178,28 @@
             <div class="card mr-2 mb-2" style="width: 17rem;">
                 <div class="card-body">
                     <h5 class="card-title">Предстоящая запись #{{$id+1}}</h5>
-                    <h6 class="card-subtitle mb-3 text-muted">{{array_last($doctors->where('id', $visit->id_medic)->all())->spec}}</h6>
-                    <p class="card-text m-0">{{ array_last($doctors->where('id', $visit->id_medic)->all())->surname . " " . array_last($doctors->where('id', $visit->id_medic)->all())->name . " " . array_last($doctors->where('id', $visit->id_medic)->all())->patronymic }}</p>
-                    <p class="card-text m-0">Каб. {{ array_last($doctors->where('id', $visit->id_medic)->all())->cabinet }}</p>
+                    <h6 class="card-subtitle mb-3 text-muted">{{array_last($doctors->where('id', $visit->medic_id)->all())->spec}}</h6>
+                    <p class="card-text m-0">{{ array_last($doctors->where('id', $visit->medic_id)->all())->surname . " " . array_last($doctors->where('id', $visit->medic_id)->all())->name . " " . array_last($doctors->where('id', $visit->medic_id)->all())->patronymic }}</p>
+                    <p class="card-text m-0">Каб. {{ array_last($doctors->where('id', $visit->medic_id)->all())->cabinet }}</p>
                     <p class="card-text m-0 pb-2">{{ str_replace(['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'], date("l, d.m.Y", strtotime($visit->date))) }}</p>
                     <div class="row">
-                        <button type="button" class="btn btn-info btn-block mb-2" data-toggle="modal" data-target="#update{{array_last($doctors->where('id', $visit->id_medic)->all())->id}}">Изменить запись</button>
+                        <button type="button" class="btn btn-info btn-block mb-2" data-toggle="modal" data-target="#update{{array_last($doctors->where('id', $visit->medic_id)->all())->id}}">Изменить запись</button>
                         <!-- Window -->
-                        <div class="modal fade" id="update{{array_last($doctors->where('id', $visit->id_medic)->all())->id}}" tabindex="-1" role="dialog" aria-labelledby="update{{array_last($doctors->where('id', $visit->id_medic)->all())->id}}Title" aria-hidden="true">
+                        <div class="modal fade" id="update{{array_last($doctors->where('id', $visit->medic_id)->all())->id}}" tabindex="-1" role="dialog" aria-labelledby="update{{array_last($doctors->where('id', $visit->medic_id)->all())->id}}Title" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered" role="document">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="update{{array_last($doctors->where('id', $visit->id_medic)->all())->id}}Title">Изменение записи</h5>
+                                    <h5 class="modal-title" id="update{{array_last($doctors->where('id', $visit->medic_id)->all())->id}}Title">Изменение записи</h5>
                                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                         <span aria-hidden="true">&times;</span>
                                     </button>
                                 </div>
                                 <div class="modal-body">
-                                    <strong>Врач:</strong>&nbsp;{{array_last($doctors->where('id', $visit->id_medic)->all())->surname . " " . array_last($doctors->where('id', $visit->id_medic)->all())->name . " " . array_last($doctors->where('id', $visit->id_medic)->all())->patronymic}}.
+                                    <strong>Врач:</strong>&nbsp;{{array_last($doctors->where('id', $visit->medic_id)->all())->surname . " " . array_last($doctors->where('id', $visit->medic_id)->all())->name . " " . array_last($doctors->where('id', $visit->medic_id)->all())->patronymic}}.
                                     <br>
-                                    <strong>Специальность:</strong>&nbsp;{{array_last($doctors->where('id', $visit->id_medic)->all())->spec}}.
+                                    <strong>Специальность:</strong>&nbsp;{{array_last($doctors->where('id', $visit->medic_id)->all())->spec}}.
                                     <br>   
-                                    <strong>Кабинет:</strong>&nbsp;{{array_last($doctors->where('id', $visit->id_medic)->all())->cabinet}}.
+                                    <strong>Кабинет:</strong>&nbsp;{{array_last($doctors->where('id', $visit->medic_id)->all())->cabinet}}.
                                     <br>
                                     <form method="post" action="/visits/{{$visit->id}}/update">
                                     {{ csrf_field() }}
@@ -222,13 +222,13 @@
                             </div>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-danger btn-block" data-toggle="modal" data-target="#delete{{array_last($doctors->where('id', $visit->id_medic)->all())->id}}">Отменить запись</button>
+                        <button type="button" class="btn btn-danger btn-block" data-toggle="modal" data-target="#delete{{array_last($doctors->where('id', $visit->medic_id)->all())->id}}">Отменить запись</button>
                         <!-- Window -->
-                        <div class="modal fade" id="delete{{array_last($doctors->where('id', $visit->id_medic)->all())->id}}" tabindex="-1" role="dialog" aria-labelledby="delete{{array_last($doctors->where('id', $visit->id_medic)->all())->id}}Title" aria-hidden="true">
+                        <div class="modal fade" id="delete{{array_last($doctors->where('id', $visit->medic_id)->all())->id}}" tabindex="-1" role="dialog" aria-labelledby="delete{{array_last($doctors->where('id', $visit->medic_id)->all())->id}}Title" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered" role="document">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="delete{{array_last($doctors->where('id', $visit->id_medic)->all())->id}}Title">Отмена записи</h5>
+                                    <h5 class="modal-title" id="delete{{array_last($doctors->where('id', $visit->medic_id)->all())->id}}Title">Отмена записи</h5>
                                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                         <span aria-hidden="true">&times;</span>
                                     </button>
@@ -264,9 +264,9 @@
             <div class="card mr-2 mb-2" style="width: 15rem;">
                 <div class="card-body">
                     <h5 class="card-title">Архивная запись #{{$id+1}}</h5>
-                    <h6 class="card-subtitle mb-3 text-muted">{{array_last($doctors->where('id', $visit->id_medic)->all())->spec}}</h6>
-                    <p class="card-text m-0">{{ array_last($doctors->where('id', $visit->id_medic)->all())->surname . " " . array_last($doctors->where('id', $visit->id_medic)->all())->name . " " . array_last($doctors->where('id', $visit->id_medic)->all())->patronymic }}</p>
-                    <p class="card-text m-0">Каб. {{ array_last($doctors->where('id', $visit->id_medic)->all())->cabinet }}</p>
+                    <h6 class="card-subtitle mb-3 text-muted">{{array_last($doctors->where('id', $visit->medic_id)->all())->spec}}</h6>
+                    <p class="card-text m-0">{{ array_last($doctors->where('id', $visit->medic_id)->all())->surname . " " . array_last($doctors->where('id', $visit->medic_id)->all())->name . " " . array_last($doctors->where('id', $visit->medic_id)->all())->patronymic }}</p>
+                    <p class="card-text m-0">Каб. {{ array_last($doctors->where('id', $visit->medic_id)->all())->cabinet }}</p>
                     <p class="card-text m-0">{{ str_replace(['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'], date("l, d.m.Y", strtotime($visit->date))) }}</p>
                 </div>
             </div>

@@ -1,4 +1,4 @@
-@extends('layout')
+@extends('layouts.app')
 
 <!-- Личный кабинет администратора -->
 @section('title')Личный кабинет администратора@endsection
@@ -18,60 +18,58 @@
 
         <!-- Модальное окно для подтверждения выхода из УЗ (окно) -->
         <div class="modal fade" id="exit" tabindex="-1" role="dialog" aria-labelledby="exitLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exitLabel">Подтверждение выхода</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-                </button>
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exitLabel">Подтверждение выхода</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Вы уверены, что хотите выйти?
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-danger" href="/logout">Выйти</a>
+                    <button type="button" class="btn btn-success" data-dismiss="modal">Отмена</button>
+                </div>
             </div>
-            <div class="modal-body">
-                Вы уверены, что хотите выйти?
-            </div>
-            <div class="modal-footer">
-                <a class="btn btn-danger" href="/logout">Выйти</a>
-                <button type="button" class="btn btn-success" data-dismiss="modal">Отмена</button>
-            </div>
-            </div>
-        </div>
         </div>
         <!-- Окно для подтверждения изменения данных УЗ (окно) -->
         <div class="modal fade" id="update" tabindex="-1" role="dialog" aria-labelledby="updateLabel" aria-hidden="true">
             <div class="modal-dialog modal-md" role="document">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="updateLabel">Подтверждение изменений</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-                </button>
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateLabel">Подтверждение изменений</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="/{{session('userInfo')->role}}/{{session('userInfo')->id}}/update">
+                    {{ csrf_field() }}
+                        <div class="form-row">
+                            <div class="form-group col-md-1">
+                            </div>
+                            <div class="form-group col-md-5">
+                                <label for="login">Логин</label>
+                                <input type="text" class="form-control" id="login" name="login" placeholder="{{ session('userInfo')->login }}">
+                            </div>
+                            <div class="form-group col-md-5">
+                                <label for="password">Пароль</label>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="{{ '**********' }}">
+                            </div>
+                            <div class="form-group col-md-1">
+                            </div>
+                        </div>
+                        <p>При отмене никаких изменений не произойдет.</p>
+                        <div class="d-flex justify-content-end modal-footer mb-0 pb-0">
+                            <button type="submit" class="btn btn-info ml-2 mr-2">Изменить</button>
+                            <button type="button" class="btn btn-warning ml-2 mr-2" data-dismiss="modal">Отмена</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="modal-body">
-                <form method="post" action="/{{session('userInfo')->role}}/{{session('userInfo')->id}}/update">
-                {{ csrf_field() }}
-                    <div class="form-row">
-                        <div class="form-group col-md-1">
-                        </div>
-                        <div class="form-group col-md-5">
-                            <label for="login">Логин</label>
-                            <input type="text" class="form-control" id="login" name="login" placeholder="{{ session('userInfo')->login }}">
-                        </div>
-                        <div class="form-group col-md-5">
-                            <label for="password">Пароль</label>
-                            <input type="password" class="form-control" id="password" name="password" placeholder="{{ '**********' }}">
-                        </div>
-                        <div class="form-group col-md-1">
-                        </div>
-                    </div>
-                    <p>При отмене никаких изменений не произойдет.</p>
-                    <div class="d-flex justify-content-end modal-footer mb-0 pb-0">
-                        <button type="submit" class="btn btn-info ml-2 mr-2">Изменить</button>
-                        <button type="button" class="btn btn-warning ml-2 mr-2" data-dismiss="modal">Отмена</button>
-                    </div>
-                </form>
-            </div>
-            </div>
-        </div>
         </div>
     </div>
 </div>

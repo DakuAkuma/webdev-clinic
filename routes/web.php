@@ -14,51 +14,62 @@
 /* Навигация по сайту, основная навигация */
 Route::get('/', 'DefaultRoutesController@main');
 
-Route::get('/users/sign_in', 'DefaultRoutesController@sign_in');
-
-Route::get('/users/sign_up', 'DefaultRoutesController@sign_up');
-
 /* User profile */
-Route::get('/users/profile', 'DefaultRoutesController@profile');
-
-/* Auth route */
-Route::post('/users/sign_in/validate', 'LoginController@authenticate');
-
-/* Logout route */
-Route::get('/logout', 'LoginController@logout');
+Route::get('/profile', 'DefaultRoutesController@profile');
 
 /* CRUD controller */
 
 /* Creating by admin route */
 Route::post('/create', 'CRUDController@create');
 
-/* Patient create route */
-Route::post('/users/sign_up/validate', 'PatientController@sign_up_validate');
-
 /* Read routes */
-Route::get('/patient/{id}/view', 'CRUDController@read');
+Route::get('/records/view', 'CRUDController@read');
 
-/* Update routes */
-Route::post('/patient/{id}/update', 'CRUDController@update');
-Route::post('/employer/{id}/update', 'CRUDController@update');
-Route::post('/medic/{id}/update', 'CRUDController@update');
-Route::post('/admin/{id}/update', 'CRUDController@update');
+/* Update route */
+Route::post('/profile/update', 'CRUDController@update');
 
-/* Delete routes */
-Route::get('/{id}/delete', 'CRUDController@delete');
+/* Delete route */
+Route::get('/profile/delete', 'CRUDController@delete');
 
 /* Visits block */
 /* Get page to add visit */
-Route::get('/visits/add', 'PatientController@visits');
+Route::get('/visits', 'VisitsController@getVisits');
 /* POST for validation */
-Route::post('/visits/add/validate/{patient_id}/{medic_id}', 'PatientController@visit_validation');
+Route::post('/visits/add/{medic_id}', 'VisitsController@newVisit');
 /* Update visit */
-Route::post('/visits/{id}/update', 'PatientController@visit_update');
+Route::post('/visits/{visit_id}/update', 'VisitsController@visitUpdate');
 /* Delete visit */
-Route::get('/visits/{id}/delete', 'PatientController@visit_delete');
+Route::get('/visits/{visit_id}/delete', 'VisitsController@visitDelete');
 
 /* Records block */
 /* Get page to add record */
-Route::get('/records/add', 'EmployController@records');
+Route::get('/records', 'RecordsController@getRecords');
 /* POST for validation */
-Route::post('/records/add/validate', 'EmployController@records_validate');
+Route::post('/records/{patient_id}/add', 'RecordsController@addRecord');
+
+/* Admin block */
+Route::get('/admin', 'AdminController@index');
+Route::post('/admin/create', 'CRUDController@create');
+Route::get('/admin/update', 'AdminController@updatePage');
+Route::post('/admin/{user_id}/update', 'AdminController@updateUser');
+Route::post('/patient/{patient_id}/update', 'AdminController@updatePatient');
+Route::post('/medic/{medic_id}/update', 'AdminController@updateDoctor');
+Route::post('/employee/{employee_id}/update', 'AdminController@updateEmployee');
+Route::get('/admin/{user_id}/delete', 'AdminController@deleteUser');
+Route::get('/patient/{patient_id}/delete', 'AdminController@deletePatient');
+Route::get('/medic/{medic_id}/delete', 'AdminController@deleteDoctor');
+Route::get('/employee/{employee_id}/delete', 'AdminController@deleteEmployee');
+
+
+/* Auth routes */
+Auth::routes();
+
+Route::get('/home', function (){
+    return redirect('/profile');
+});
+
+/* Logout route */
+Route::get('/logout', function () {
+    session()->flush();
+    return redirect('/');
+});

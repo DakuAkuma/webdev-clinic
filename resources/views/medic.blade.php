@@ -1,4 +1,4 @@
-@extends('layout')
+@extends('layouts.app')
 
 <!-- Личный кабинет врача -->
 @section('title')Учетная запись врача@endsection
@@ -36,8 +36,7 @@
 </div>
 <div class="d-flex justify-content-center">
     <div class="row">
-        <!-- Модальное окно для изменения данных УЗ (кнопка) --> 
-        <!-- <a href="/users/update/{{session('userInfo')->id}}" class="btn btn-info btn-block">Изменить данные</a> -->
+        <!-- Модальное окно для изменения данных УЗ (кнопка) -->
         <button type="button" class="btn btn-info btn-block" data-toggle="modal" data-target="#update">Изменить данные</button>
         <!-- Модальное окно для подтверждения выхода из УЗ (кнопка) --> 
         <button type="button" class="btn btn-danger btn-block" data-toggle="modal" data-target="#exit">Выйти</button>
@@ -73,7 +72,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form method="post" action="/{{session('userInfo')->role}}/{{session('userInfo')->id}}/update">
+                <form method="post" action="/profile/update">
                 {{ csrf_field() }}
                     <div class="form-row">
                         <div class="form-group col-md-4">
