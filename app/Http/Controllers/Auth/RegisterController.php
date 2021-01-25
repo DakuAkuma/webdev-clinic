@@ -48,6 +48,7 @@ class RegisterController extends Controller
      */
     protected function validator(array $data)
     {
+    	$data['passport'] = ($data['seria'] . " " . $data['nomer']);
         return Validator::make($data, [
             'surname' => 'required|min:2|max:48',
             'name' => 'required|min:2|max:48',
@@ -56,6 +57,7 @@ class RegisterController extends Controller
             'login' => 'required|min:5|max:32|unique:users,login',
             'seria' => 'required|size:4',
             'nomer' => 'required|size:6',
+            'passport' => 'unique:patients,passport',
             'phone' => 'required|min:11|max:20',
             'birthdate' => 'required|date|after:' . date('d.m.Y', strtotime("-110 years")) . '|before:' . date("d.m.Y", strtotime("-18 years")),
             'class' => 'required'
