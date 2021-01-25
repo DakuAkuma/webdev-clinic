@@ -79,7 +79,7 @@ return [
     ],
     'string'               => 'The :attribute must be a string.',
     'timezone'             => 'The :attribute must be a valid zone.',
-    'unique'               => 'Данный :attribute уже занят другим пользователем.',
+    'unique'               => 'Значение поля :attribute должно быть уникальным.',
     'url'                  => 'The :attribute format is invalid.',
 
     /*
